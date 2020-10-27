@@ -1,0 +1,50 @@
+* {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
+
+/* Layout */
+.app {
+    
+    height: 100vh;
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: 300px auto;
+    grid-template-rows: 60px auto 120px;
+    grid-template-areas: "header header"
+                         "table canvas"
+                         "footer footer";
+}
+
+header {
+    grid-area: header;
+    background-color: red;
+}
+
+table {
+    grid-area: table;
+    background-color: blue;
+}
+
+.display {
+    grid-area: canvas;
+    height: 100%;
+    width: 100%;
+}
+
+canvas {
+    display: block;
+}
+
+
+
+footer {
+    grid-area: footer;
+    background-color: green;
+}
+

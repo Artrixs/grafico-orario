@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="styles/style.css">
+
+  <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">  
+
+  <title>Grafico orario</title>
+
+</head>
+
+<body>
+    <div class="app">
+        <header>
+            12:45
+        </header>
+
+        <table id="tabella">
+            <tr>
+                <th>Treno</th>
+                <th></th>
+            </tr>
+
+            <tr>
+                <td>R1251</td>
+                <td><span class="icon">x</span></td>
+            </tr>
+
+            <tr>
+                    <td>IC57</td>
+                    <td><span class="icon">x</span></td>
+            </tr>
+            
+            <tr>
+                <td>INV3452</td>
+                <td><span class="icon">x</span></td>
+            </tr>
+        </table>
+
+        <div class="display">
+            <canvas></canvas>
+        </div>
+        
+        
+
+        <footer>
+            <form action="#">
+                <label>Numero treno:</label>
+                <input type="text">
+                <button id="nuovoTreno">Nuovo</button> 
+                <button id="disegna">Disegna</button>
+            </form>
+        </footer>
+    </div>
+
+    <script src="scripts/main.js"></script>
+</body>
+
+</html>
