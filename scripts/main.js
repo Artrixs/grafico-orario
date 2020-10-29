@@ -53,12 +53,30 @@ function main() {
     }
 
     let graficoOrario = new GraficoOrario(document.querySelector('canvas'), stations);
-    graficoOrario.addTrain(123, 2);
-    graficoOrario.addTrainStop(123,'Alassio', new Date(2020,9,29,12,45));
-    graficoOrario.addTrainStop(123,'Albenga', new Date(2020,9,29,12,54));
-    graficoOrario.addTrainStop(123,'Albenga', new Date(2020,9,29,12,57));
-    graficoOrario.addTrainStop(123,'Pietra L.', new Date(2020,9,29,13,5));
 
+    document.getElementById('newTrain').addEventListener('click', (e) => {
+        e.preventDefault();
+        const trainNumber = Number(document.getElementById('trainNumberField').value);
+        if( !isNaN(trainNumber) && !(trainNumber in graficoOrario.trains)) {
+            graficoOrario.addTrain(trainNumber,1);
+        }
+    })
+
+    document.getElementById('newStop').addEventListener('click', (e) => {
+        e.preventDefault();
+        const trainNumber = Number(document.getElementById('trainN').value);
+        const station = document.getElementById('stationName').value;
+
+        if(!isNaN(trainNumber) && (trainNumber in graficoOrario.trains) && station in stations){
+            graficoOrario.addTrainStop(trainNumber, station, new Date());
+        }
+        graficoOrario.update();
+    })
+
+    document.getElementById('list').addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log(graficoOrario.trains);
+    })
 }
 
 
