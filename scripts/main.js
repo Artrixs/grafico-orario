@@ -1,6 +1,59 @@
 
 function main() {
-    let graficoOrario = new GraficoOrario(document.querySelector('canvas'));
+    const stations = {
+        'Savona' : {
+            km: 39.1,
+            type: 1
+        },
+        'Spotorno-Noli' : {
+            km: 49.8,
+            type: 2
+        },
+        'Finale L.M' : {
+            km: 58.4,
+            type: 2
+        },
+        'Borgio Verezzi' : {
+            km: 70.3,
+            type: 3
+        },
+        'Pietra L.' : {
+            km: 72.2,
+            type: 2
+        },
+        'Loano' : {
+            km: 76.5,
+            type: 2
+        },
+        'Borghetto S.S.' : {
+            km: 78.2,
+            type: 3
+        },
+        'Ceriale': {
+            km: 79.5,
+            type: 3
+        },
+        'Albenga': {
+            km: 85.4,
+            type: 2
+        },
+        'Alassio': {
+            km: 91.6,
+            type: 2
+        },
+        'Laigueglia': {
+            km: 94.8,
+            type: 3
+        },
+        'Andora': {
+            km: 97.7,
+            type: 2
+        }
+
+    }
+    4,5
+    let graficoOrario = new GraficoOrario(document.querySelector('canvas'), stations);
+
 }
 
 
@@ -9,19 +62,31 @@ class GraficoOrario {
     ctx;
     height;
     width;
-    startDate;
+    minKM = null;
+    maxKM = null;
+    stations;
     padding = 20;
     stationListWidth = 200 //The width of the station area
     hoursHeight = 50 // Height of the x axis
     timeStart = new Date();
     timeEnd = new Date(this.timeStart.getTime() + 1000 * 60 * 60 * 4);
 
-    constructor(canvas) {
+    constructor(canvas, stations) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
         this.height = canvas.height;
         this.width = canvas.width;
-        this.startDate = new Date();
+
+        this.stations = stations;
+        for( const s in stations){
+            const km = stations[s].km;
+            if ( this.minKM == null || this.minKM > km){
+                this.minKM = km;
+            }
+            if( this.maxKM == null || this.maxKM < km ){
+                this.maxKM = km;
+            }
+        }
 
         window.addEventListener('load', () => {
             this.resize();
@@ -121,16 +186,25 @@ class GraficoOrario {
             text += "0";
         }
         text += minutes;
-        this.drawVerticalText(text, this.getXfromTime(time), this.height - (this.padding+this.hoursHeight)+10, 16)
+        this.ctx.save();
+        this.ctx.font = '16px Roboto';
+        this.drawVerticalText(text, this.getXfromTime(time), this.height - (this.padding+this.hoursHeight)+10)
+        this.ctx.restore();
     }
 
-    drawVerticalText(text, x , y, fontSize) {
-        this.ctx.font = fontSize + "px Roboto";
+    drawVerticalText(text, x , y) {
         this.ctx.save();
         this.ctx.translate(x,y);
         this.ctx.rotate(Math.PI/2);
         this.ctx.fillText(text, 0,3);
 
+        this.ctx.restore();
+    }
+
+    drawHorizontalText(text, x, y) {
+        this.ctx.save();
+        const textHeight = this.ctx.measureText('M').width; //Hacky to get height
+        this.ctx.fillText(text, x, y + textHeight/2);
         this.ctx.restore();
     }
 
@@ -142,8 +216,45 @@ class GraficoOrario {
         return this.padding + this.stationListWidth + startToTimePixels;
     }
 
-    drawStationscale() {
+    getYFromKM(km) {
+        const totalDeltaKM = this.maxKM - this.minKM;
+        const partialDeltaKM = km - this.minKM;
+        const totalPixels = this.height - ( this.padding * 2 + this.hoursHeight );
+        const partialPixels = Math.floor( (partialDeltaKM / totalDeltaKM) * totalPixels );
+        return (this.height - ( this.padding + this.hoursHeight ) ) - partialPixels;
+    }
 
+    drawStationscale() {
+        this.ctx.save();
+        const baseFont = ' 14px Roboto';
+        this.strokeStyle = 'lightgray';
+        for( const name in this.stations){
+            const s = this.stations[name];
+            this.ctx.font = this.getFontFromStationType(s.type, baseFont);
+            const Xoffset = this.ctx.measureText(name).width +5;
+            const y = this.getYFromKM(s.km);
+            this.drawHorizontalText(name, this.padding + this.stationListWidth - Xoffset, y);
+            
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.padding + this.stationListWidth - 2, y);
+            this.ctx.lineTo(this.width - this.padding, y);
+            this.ctx.stroke();
+        }
+        this.ctx.restore();
+
+    }
+
+    getFontFromStationType(type, baseFont){
+        switch(type){
+            case 1:
+                return 'small-caps bold 16px Roboto'
+            case 2: 
+                return 'bold ' + baseFont;
+            case 3:
+                return 'italic 12px Roboto';
+            default:
+                return baseFont;
+        }
     }
 
     clearCanvas() {
