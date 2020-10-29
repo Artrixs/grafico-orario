@@ -1,105 +1,13 @@
 
-function main() {
-    const stations = {
-        'Savona' : {
-            km: 39.1,
-            type: 1
-        },
-        'Spotorno-Noli' : {
-            km: 49.8,
-            type: 2
-        },
-        'Finale L.M' : {
-            km: 58.4,
-            type: 2
-        },
-        'Borgio Verezzi' : {
-            km: 70.3,
-            type: 3
-        },
-        'Pietra L.' : {
-            km: 72.2,
-            type: 2
-        },
-        'Loano' : {
-            km: 76.5,
-            type: 2
-        },
-        'Borghetto S.S.' : {
-            km: 78.2,
-            type: 3
-        },
-        'Ceriale': {
-            km: 79.5,
-            type: 3
-        },
-        'Albenga': {
-            km: 85.4,
-            type: 2
-        },
-        'Alassio': {
-            km: 91.6,
-            type: 2
-        },
-        'Laigueglia': {
-            km: 94.8,
-            type: 3
-        },
-        'Andora': {
-            km: 97.7,
-            type: 2
-        }
-
-    }
-
-    let graficoOrario = new GraficoOrario(document.querySelector('canvas'), stations);
-
-    document.getElementById('newTrain').addEventListener('click', (e) => {
-        e.preventDefault();
-        const trainNumber = Number(document.getElementById('trainNumberField').value);
-        if( !isNaN(trainNumber) && !(trainNumber in graficoOrario.trains)) {
-            graficoOrario.addTrain(trainNumber,1);
-        }
-    })
-
-    document.getElementById('newStop').addEventListener('click', (e) => {
-        e.preventDefault();
-        const trainNumber = Number(document.getElementById('trainN').value);
-        const station = document.getElementById('stationName').value;
-
-        if(!isNaN(trainNumber) && (trainNumber in graficoOrario.trains) && station in stations){
-            graficoOrario.addTrainStop(trainNumber, station, new Date());
-        }
-        graficoOrario.update();
-    })
-
-    document.getElementById('list').addEventListener('click', (e) => {
-        e.preventDefault();
-        console.log(graficoOrario.trains);
-    })
-}
-
-
 class GraficoOrario {
-    canvas;
-    ctx;
-    height;
-    width;
-    minKM = null;
-    maxKM = null;
-    stations;
-    padding = 20;
-    stationListWidth = 200 //The width of the station area
-    hoursHeight = 50 // Height of the x axis
-    timeStart = new Date();
-    timeEnd = new Date(this.timeStart.getTime() + 1000 * 60 * 60 * 4);
-    trains = {};
-
     constructor(canvas, stations) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
         this.height = canvas.height;
         this.width = canvas.width;
+        this.padding = 20;
+        this.stationListWidth = 200 //Thewidth of the station area
+        this.hoursHeight = 50 // Height of the x axis
 
         this.stations = stations;
         for( const s in stations){
@@ -111,6 +19,10 @@ class GraficoOrario {
                 this.maxKM = km;
             }
         }
+
+        this.timeStart = new Date();
+        this.timeEnd = new Date(this.timeStart.getTime() + 1000 * 60 * 60 * 4);
+        this.trains = {};
 
         window.addEventListener('load', () => {
             this.resize();
@@ -378,24 +290,4 @@ class GraficoOrario {
     }
 }
 
-
-function drawUI(canvas, ctx) {
-    // Contour
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0,0);
-    ctx.lineTo(canvas.width, 0);
-    ctx.lineTo(canvas.width, canvas.height);
-    ctx.lineTo(0, canvas.height);
-    ctx.lineTo(0,0);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(100.5,40.5);
-    ctx.lineTo(100.5,canvas.height-60.5);
-    ctx.lineTo(canvas.width - 100.5, canvas.height - 60.5);
-    ctx.stroke();
-
-    }
-
-main()
+export { GraficoOrario };
