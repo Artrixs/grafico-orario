@@ -51,8 +51,13 @@ function main() {
         }
 
     }
-    4,5
+
     let graficoOrario = new GraficoOrario(document.querySelector('canvas'), stations);
+    graficoOrario.addTrain(123, 2);
+    graficoOrario.addTrainStop(123,'Alassio', new Date(2020,9,29,12,45));
+    graficoOrario.addTrainStop(123,'Albenga', new Date(2020,9,29,12,54));
+    graficoOrario.addTrainStop(123,'Albenga', new Date(2020,9,29,12,57));
+    graficoOrario.addTrainStop(123,'Pietra L.', new Date(2020,9,29,13,5));
 
 }
 
@@ -70,6 +75,7 @@ class GraficoOrario {
     hoursHeight = 50 // Height of the x axis
     timeStart = new Date();
     timeEnd = new Date(this.timeStart.getTime() + 1000 * 60 * 60 * 4);
+    trains = {};
 
     constructor(canvas, stations) {
         this.canvas = canvas;
@@ -104,6 +110,62 @@ class GraficoOrario {
  
             event.preventDefault();
         })
+    }
+
+    addTrain(number, category){
+        this.trains[number] = {
+            type: category,
+            stops: []
+        }
+    }
+
+    addTrainStop(train, station, time) {
+        this.trains[train].stops.push({station:station, time:time});
+    }
+
+    drawTrain(category, stops){
+        //TODO: change color based on category
+        //FIXME: if both one time point is before and the next one is after we are not drawing anything!
+        this.ctx.save();
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        const insideTimeFrame = (time) => { return time >= this.timeStart && time <= this.timeEnd };
+        for( let i = 0; i < stops.length - 1; i++) {
+            const stop = stops[i];
+            const nextStop = stops[i+1];
+            const x = this.getXfromTime( stop.time );
+            const y = this.getYFromKM( this.stations[stop.station].km);
+            const nextX = this.getXfromTime( nextStop.time );
+            const nextY = this.getYFromKM( this.stations[nextStop.station].km);
+            if ( insideTimeFrame(stop.time) && insideTimeFrame(nextStop.time)){
+                //both stops are inside the time frame
+                if( i == 0 ) { //This is also the first one we have so we have to move the cursor first
+                    this.ctx.moveTo(x,y);
+                }
+                this.ctx.lineTo(nextX, nextY);
+                continue
+            }
+            if( insideTimeFrame(stop.time)) {
+                //The next one is outside ( after this iteration we can stop)
+                if( i == 0 ) {// if it'st the first we have to first move the cursor
+                    this.ctx.moveTo(x,y);
+                }
+                const slope = (nextY-y)/(nextX-x);
+                const newY = y + slope*( this.width - this.padding-x);
+                this.ctx.lineTo(this.width - this.padding, newY);
+                break;
+            }
+            if( insideTimeFrame(nextStop.time)) {
+                // The nextStop is inside while this is not
+                const slope = (nextY-y)/(nextX-x);
+                const newY = y + slope * (this.padding + this.stationListWidth-x);
+                this.ctx.moveTo(this.padding + this.stationListWidth, newY);
+                this.ctx.lineTo(nextX, nextY);
+                continue;
+            }
+        }
+        this.ctx.stroke();
+        this.ctx.restore();
     }
 
     drawUI() {
@@ -266,6 +328,10 @@ class GraficoOrario {
     update() {
         this.clearCanvas();
         this.drawUI();
+        
+        for( let t in this.trains ) {
+            this.drawTrain(this.trains[t].type, this.trains[t].stops);
+        }
     }
 
     changeStartTime(milliseconds) {
