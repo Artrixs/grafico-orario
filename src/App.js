@@ -17,7 +17,7 @@ class App {
                 number: 123,
                 type: 1,
                 active: false,
-                selected: true,
+                selected: false,
                 stops: [
                     {
                         name: 'Albenga',
@@ -112,7 +112,8 @@ class App {
             const lastStop = t.stops[t.stops.length - 1];
             infos.innerText = lastStop.name + " " + this.getTimeString(lastStop.arrival) + "/" + this.getTimeString(lastStop.departure);
             row.appendChild(infos);
-            row.addEventListener('click', () => { this.footer.innerText = t.name});
+            row.addEventListener('mouseenter', () => { this.setSelected(t.name, true)});
+            row.addEventListener('mouseleave', () => { this.setSelected(t.name, false)});
             this.table.appendChild(row);
         }
     }
@@ -131,6 +132,16 @@ class App {
 
     buildFooter() {
 
+    }
+
+    setSelected(train, value) {
+        for(const t of this.trains) {
+            if ( t.name === train ) {
+                t.selected = value;
+                this.graficoOrario.update();
+                return;
+            }
+        }
     }
 
     getTrainLines() {
