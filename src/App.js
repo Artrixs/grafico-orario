@@ -4,12 +4,20 @@ import {stations} from './stationList.js';
 class App {
     constructor() {
         this.graficoOrario = new GraficoOrario(document.querySelector('canvas'), stations, this);
+        this.header = document.querySelector('header');
+        this.table  = document.querySelector('table');
+        this.footer = document.querySelector('footer');
+        this.showOnlyActive = true;
 
-        this.train = [
+        
+
+        this.trains = [
             {
                 name: "REG123",
                 number: 123,
                 type: 1,
+                active: false,
+                selected: true,
                 stops: [
                     {
                         name: 'Albenga',
@@ -27,69 +35,168 @@ class App {
                         departure: null
                     }
                 ]
+            },
+            {
+                name: "IC24",
+                number: 24,
+                type: 2,
+                active: true,
+                selected: false,
+                stops: [
+                    {
+                        name: 'Albenga',
+                        arrival: null,
+                        departure: new Date(2020,9,30,15,26)
+                    },
+                    {
+                        name: 'Alassio',
+                        arrival: new Date(2020,9,30,15,40),
+                        departure: null
+                    }
+                ]
             }
         ]
+        
+        this.buildUI();
 
-        document.getElementById('newTrain').addEventListener('click', (e) => {
-            e.preventDefault();
-            const trainNumber = Number(document.getElementById('trainNumberField').value);
-            if( !isNaN(trainNumber) && !(trainNumber in this.graficoOrario.trains)) {
-                this.graficoOrario.addTrain(trainNumber,1);
-            }
-        })
-        
-        document.getElementById('newStop').addEventListener('click', (e) => {
-            e.preventDefault();
-            const trainNumber = Number(document.getElementById('trainN').value);
-            const station = document.getElementById('stationName').value;
-        
-            if(!isNaN(trainNumber) && (trainNumber in this.graficoOrario.trains) && station in stations){
-                this.graficoOrario.addTrainStop(trainNumber, station, new Date());
-            }
+    }
+
+    buildUI() {
+        this.buildHeader();
+        this.buildTrainTable();
+        this.buildFooter();
+
+
+        const automaticRefresh = () => {
             this.graficoOrario.update();
-        })
-        
-        document.getElementById('list').addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log(graficoOrario.trains);
-        })
+            setTimeout(automaticRefresh, 60 * 1000);
+        }
+        automaticRefresh();
         
     }
 
+    buildTrainTable() {
+        this.table.replaceChildren();
+        const headerRow = document.createElement('tr');
+        const title = document.createElement('th');
+        title.innerText = "Treni";
+        title.setAttribute('colspan', '2');
+        headerRow.appendChild(title);
+        this.table.appendChild(headerRow);
+
+        const checkRow = document.createElement('tr');
+        const th = document.createElement('th');
+        const checkbox = document.createElement('input');
+        checkbox.setAttribute('type','checkbox');
+        checkbox.checked = !this.showOnlyActive;
+        checkbox.addEventListener('change', (e) => {
+            this.showOnlyActive = !this.showOnlyActive;
+            this.buildTrainTable();
+        })
+        th.append(checkbox, "Visualizzare i treni terminati");
+        checkRow.appendChild(th);
+        this.table.append(checkRow);
+        
+
+        for( const t of this.trains ) {
+            if ( this.showOnlyActive && !t.active ) {
+                continue;
+            }
+
+            const row = document.createElement('tr');
+            const train = document.createElement('td');
+            train.innerText = t.name;
+            row.appendChild(train);
+
+            const infos = document.createElement('td');
+            const lastStop = t.stops[t.stops.length - 1];
+            infos.innerText = lastStop.name + " " + this.getTimeString(lastStop.arrival) + "/" + this.getTimeString(lastStop.departure);
+            row.appendChild(infos);
+            row.addEventListener('click', () => { this.footer.innerText = t.name});
+            this.table.appendChild(row);
+        }
+    }
+
+    buildHeader() {
+        const time = document.createElement('div');
+        time.className = "clock"
+
+        const updateTime = () => {
+            time.innerText = this.getTimeString(new Date(),true);
+            setTimeout(updateTime, 1000);
+        }
+        updateTime();
+        this.header.appendChild(time);
+    }
+
+    buildFooter() {
+
+    }
+
     getTrainLines() {
-        const points = [
-            {
-                color: 'red',
-                selected: true,
-                points: [ {
-                    time: new Date(2020,9,30,14,54),
-                    station: 'Albenga'
-                    },
-                    {
-                    time: new Date(2020,9,30,14,59),
-                    station: 'Loano'
-                    },
-                    {
-                    time: new Date(2020,9,30,20,30),
-                    station: 'Spotorno-Noli'
-                    }]
-            },
-            {
-                color: 'black',
-                selected: false,
-                points: [
-                    {
-                        time: new Date(2020,9,30,14,59),
-                        station: 'Pietra L.'
-                    },
-                    {
-                        time: new Date(2020,9,30,15,5),
-                        station: 'Albenga'
-                    }
-                ]
-            }     
-        ];
-        return points;
+        const value = [];
+
+        for (const t of this.trains ) {
+            const selected  = t.selected;
+
+            let color;
+            switch(t.type) {
+                case 1:
+                    color = 'black';
+                    break;
+                case 2: 
+                    color = 'red';
+                    break;
+                case 3:
+                    color = 'green';
+                    break;
+                default:
+                    color = 'black';
+            }
+
+            let points = [];
+            for ( const s of t.stops ) {
+                if ( s.arrival != null ) {
+                    points.push( { station: s.name, time: s.arrival } );
+                }
+
+                if ( s.departure != null ) {
+                    points.push( { station: s.name, time: s.departure} );
+                } else if ( t.active &&  s.arrival != null ) {
+                    points.push( { station: s.name, time: new Date() } );
+                }
+            }
+            value.push( {
+                points: points,
+                color: color,
+                selected: selected
+            })
+        }
+        
+        return value;
+    }
+
+    getTimeString(time, seconds = false) {
+        if ( time === null ) {
+            return "-";
+        }
+
+        let value = time.getHours() + ":";
+        const minutes = time.getMinutes();
+        if( minutes < 10 ) {
+            value += "0";
+        }
+        value += minutes
+        if( seconds ){
+            value += ":";
+            const sec = time.getUTCSeconds();
+            if ( sec < 10) {
+                value += "0";
+            }
+            value += sec
+        }
+
+        return value;
     }
 }
 

@@ -14,7 +14,7 @@
     width: 100%;
 
     display: grid;
-    grid-template-columns: 300px auto;
+    grid-template-columns: 350px auto;
     grid-template-rows: 60px auto 120px;
     grid-template-areas: "header header"
                          "table canvas"
@@ -23,12 +23,17 @@
 
 header {
     grid-area: header;
-    background-color: red;
+    display: flex;
+    flex-direction: row-reverse;
+    background-color: lightblue;
 }
 
 table {
     grid-area: table;
-    background-color: blue;
+}
+
+tr {
+    width: 100%;
 }
 
 .display {

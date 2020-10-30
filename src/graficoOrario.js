@@ -6,7 +6,7 @@ class GraficoOrario {
         this.height = canvas.height;
         this.width = canvas.width;
         this.padding = 20;
-        this.stationListWidth = 200 //Thewidth of the station area
+        this.stationListWidth = 100 //Thewidth of the station area
         this.hoursHeight = 50 // Height of the x axis
         this.app = app;
 
