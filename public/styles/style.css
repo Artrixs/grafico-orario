@@ -6,6 +6,37 @@
     font-family: 'Roboto', sans-serif;
 }
 
+:root {
+    /* --borders: #2980b9; */
+    --borders: #4C566A;
+    --bg: #ECEFF4;
+    --green: #A3BE8C;
+    --red: #BF616A;
+    --blue: #5E81AC;
+}
+
+body {
+    background-color: var(--bg);
+}
+
+
+button {
+    font-size: 1.2rem;
+    padding: 5px;
+    margin: 5px;
+    border: 2px solid var(--borders);
+    border-radius: 5px ;
+    cursor: pointer;
+    background-color: #D8DEE9;
+}
+
+.green {
+    background-color: var(--green);
+}
+
+.blue {
+    background-color: var(--blue);
+}
 
 /* Layout */
 .app {
@@ -21,20 +52,61 @@
                          "footer footer";
 }
 
+/* OPTION MENU */
+.menu {
+    position:fixed;
+    height: 100vh;
+    width: 100vw;
+    top:0;
+    left:0;
+    z-index: 1;
+
+    display:flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    background-color: white;
+}
+
+/* HEADER */
 header {
     grid-area: header;
     display: flex;
-    flex-direction: row-reverse;
-    background-color: lightblue;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--borders);
 }
 
-table {
+.table {
     grid-area: table;
+    width: 100%;
+    padding: 20px;
 }
 
-tr {
+.table div {
     width: 100%;
+    text-align: center;    
 }
+
+.table .row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--borders);
+    padding: 4px 0;
+}
+
+.row .train-number {
+    text-align: left;
+}
+
+.row .train-infos {
+    text-align: right;
+}
+
 
 .display {
     grid-area: canvas;
@@ -50,6 +122,6 @@ canvas {
 
 footer {
     grid-area: footer;
-    background-color: green;
+    border-top: 1px solid var(--borders);
 }
 
