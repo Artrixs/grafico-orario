@@ -1,6 +1,9 @@
 module.exports = {
+    buildOptions: {
+        out: 'docs'
+    },
     mount: {
-        public: '/',
-        src: '/_dist_'
+        'public': '/',
+        'src': '/js'
     }
 }
