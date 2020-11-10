@@ -5,8 +5,8 @@ class App {
     constructor() {
         this.graficoOrario = new GraficoOrario(document.querySelector('canvas'), stations, this);
         this.header = document.querySelector('header');
-        this.table  = document.getElementsByClassName('table')[0];
-        this.footer = document.querySelector('footer');
+        this.table  = document.querySelector('#table');
+        this.footer = document.querySelector('#foot');
         this.showOnlyActive = true;
         this.trainFocus = null;
         this.currentStop = null;
@@ -38,11 +38,17 @@ class App {
 
     buildTrainsTable() {
         this.table.replaceChildren();
-        const header = document.createElement('div');
-        header.innerText = "Treni";
-        this.table.appendChild(header);
+        const header = document.createElement('div'); 
+        header.className = 'table-row table-head';
+        this.table.append(header);
 
+        const title = document.createElement('h4');
+        title.innerText = "Treni";
+        header.append(title);
+
+        /*
         const checkRow = document.createElement('div');
+        checkRow.className = 'table-row';*/
         const checkbox = document.createElement('input');
         checkbox.setAttribute('type','checkbox');
         checkbox.checked = !this.showOnlyActive;
@@ -50,9 +56,9 @@ class App {
             this.showOnlyActive = !this.showOnlyActive;
             this.buildTrainsTable();
         })
-        checkRow.append(checkbox, "Visualizzare i treni terminati");
+        header.append(checkbox, " Visualizzare i treni terminati");
 
-        this.table.append(checkRow);
+        //this.table.append(checkRow);
         
 
         for( const t of this.trains ) {
@@ -61,14 +67,14 @@ class App {
             }
 
             const row = document.createElement('div');
-            row.className = "row";
+            row.className = "table-row";
             const train = document.createElement('div');
-            train.className = "train-number"
+            train.className = "cell-left"
             train.innerText = t.name;
             row.appendChild(train);
 
             const infos = document.createElement('div');
-            infos.className = 'train-infos';
+            infos.className = 'cell-right';
             if ( t.stops.length > 0) {
                 const lastStop = t.stops[t.stops.length - 1];
                 infos.innerText = lastStop.name + " " + this.getTimeString(lastStop.arrival) + "/" + this.getTimeString(lastStop.departure);
@@ -97,28 +103,43 @@ class App {
         this.table.replaceChildren();
 
         const header = document.createElement('div');
-        header.innerText = this.trainFocus.name;
-        this.table.appendChild(header);
+        header.className = 'table-head table-row'
+        this.table.append(header);
+
+        const button = document.createElement('button');
+        button.innerText = "<-";
+        button.className = 'error';
+        button.addEventListener('click', () => {
+            this.setSelected(this.trainFocus.name, false);
+            this.showDefaultUI();
+        })
+        header.append(button);
+
+        const title = document.createElement('h4');
+        title.innerText = this.trainFocus.name;
+        header.append(title);
 
         for( const s of this.trainFocus.stops ) {
             const row = document.createElement('div');
-            row.innerText = s.name + " " + this.getTimeString(s.arrival) + "/" + this.getTimeString(s.departure);
+            row.className = 'table-row'
             row.addEventListener('click', () => {
                 this.currentStop = s;
                 this.buildFooterStop();
             })
             this.table.append(row);
+
+            const stopName = document.createElement('div');
+            stopName.className = 'cell-left';
+            stopName.innerText = s.name;
+
+            const times = document.createElement('div');
+            times.className = 'cell-right';
+            times.innerText = this.getTimeString(s.arrival) + "/" + this.getTimeString(s.departure);
+            
+            row.append(stopName, times);
         }
 
-        const button = document.createElement('button');
-        button.innerText = "Chiudi";
-        button.className = 'red';
-        button.addEventListener('click', () => {
-            this.setSelected(this.trainFocus.name, false);
-            this.showDefaultUI();
-        })
-
-        this.table.append(button);
+        
     }
 
     buildHeader() {
@@ -139,7 +160,6 @@ class App {
         settings.innerText = 'Impostazioni';
         const print = document.createElement('button');
         print.innerText = 'Stampa';
-        print.className = 'blue';
 
         print.addEventListener('click', ()=> {
             const img = this.graficoOrario.canvas.toDataURL();
@@ -168,7 +188,7 @@ class App {
         
         const button = document.createElement('button');
         button.innerText = "Nuovo";
-        button.className = 'green';
+        button.className = 'success';
 
         button.addEventListener('click', () => {
             this.newTrain(inputField.value)
@@ -222,7 +242,7 @@ class App {
         
         const saveBtn = document.createElement('button');
         saveBtn.innerText = 'Save';
-        saveBtn.className = 'red';
+        saveBtn.className = 'success';
         saveBtn.addEventListener('click', () => {
             this.saveStop(
                 inputStationName.value,
@@ -278,10 +298,10 @@ class App {
 
         const buttonsDiv = document.createElement('div');
         const save = document.createElement('button');
-        save.className = 'green';
+        save.className = 'success';
         save.innerText = 'Save'
         const exit = document.createElement('button');
-        exit.className = 'blue';
+        exit.className = 'info';
         exit.innerText = 'Return';
         exit.addEventListener('click', () => {
             document.querySelector('body').removeChild(menu);

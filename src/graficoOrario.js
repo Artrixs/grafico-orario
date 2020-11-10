@@ -272,7 +272,7 @@ class GraficoOrario {
     }
 
     clearCanvas() {
-        this.ctx.fillStyle = '#ECEFF4';
+        this.ctx.fillStyle = 'white';
         this.ctx.fillRect(0,0,this.width, this.height);
         this.ctx.fillStyle = 'black';
     }
@@ -299,7 +299,7 @@ class GraficoOrario {
     }
 
     resize() {
-        const table = document.getElementsByClassName('table')[0];
+        const table = document.querySelector('aside');
         const header = document.querySelector('header');
         const footer = document.querySelector('footer');
     
