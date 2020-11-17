@@ -387,7 +387,7 @@ class App {
     }
 
     newTrain(input) {
-        //TODO Change type based on input
+        //FIXME better return values 
         const id = input.toUpperCase();
         const type = input.replace(/\d/g, '');
         const number = parseInt(input.replace(/[^\d]/g,''));
@@ -402,10 +402,13 @@ class App {
                 return false;
             }
         }
+
+        const typeNumber = this.numberFromType(type);
+
         const train = {
             name: id,
             number: number,
-            type: 1,
+            type: typeNumber,
             active: true,
             selected: false,
             stops: []
@@ -422,20 +425,7 @@ class App {
         for (const t of this.trains ) {
             const selected  = t.selected;
 
-            let color;
-            switch(t.type) {
-                case 1:
-                    color = 'black';
-                    break;
-                case 2: 
-                    color = 'red';
-                    break;
-                case 3:
-                    color = 'green';
-                    break;
-                default:
-                    color = 'black';
-            }
+            const color = this.colorFromType(t.type);
 
             let points = [];
             for ( const s of t.stops ) {
@@ -498,6 +488,46 @@ class App {
         value += day;
 
         return value;
+    }
+
+    colorFromType(type){
+        switch(type){
+        case 1:
+            return 'black';
+        case 2:
+            return 'green';
+        case 3:
+            return 'red';
+        case 4:
+            return 'violet';
+        case 5:
+            return 'blue';
+        default:
+            return 'black';
+        }
+    }
+
+    numberFromType(type) {
+        switch(type){
+        case "REG":
+            return 1;
+        case "R":
+            return 1;
+        case "RE":
+            return 2;
+        case "IC":
+            return 3;
+        case "AV":
+            return 4;
+        case "EC":
+            return 3;
+        case "EN":
+            return 3;
+        case "S":
+            return 5;
+        default:
+            return 1;
+        }
     }
 }
 
