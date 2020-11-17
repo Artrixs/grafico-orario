@@ -46,9 +46,7 @@ class App {
         title.innerText = "Treni";
         header.append(title);
 
-        /*
-        const checkRow = document.createElement('div');
-        checkRow.className = 'table-row';*/
+
         const checkbox = document.createElement('input');
         checkbox.setAttribute('type','checkbox');
         checkbox.checked = !this.showOnlyActive;
@@ -58,7 +56,6 @@ class App {
         })
         header.append(checkbox, " Visualizzare i treni terminati");
 
-        //this.table.append(checkRow);
         
 
         for( const t of this.trains ) {
@@ -146,10 +143,31 @@ class App {
             this.table.append(row);
         }
 
+        const row = document.createElement('div');
+        row.className = 'table-head table-row';
+        const hideButton = document.createElement('button');
+        hideButton.className = 'info';
+        if ( this.trainFocus.active ) {
+            hideButton.innerText = 'Termina';
+        } else {
+            hideButton.innerText = 'Riattiva';
+        }
+
+        hideButton.addEventListener('click', () => {
+            this.trainFocus.active = !this.trainFocus.active;
+            this.trainFocus = null;
+            this.buildUI();
+            this.graficoOrario.update();
+        })
+
+        row.append(hideButton);
+        this.table.append(row); 
+
         
     }
 
     buildHeader() {
+        this.header.replaceChildren();
         const time = document.createElement('h1');
         time.className = "clock"
 
