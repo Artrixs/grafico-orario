@@ -46,6 +46,15 @@ export const stations = {
     'Andora': {
         km: 97.7,
         type: 2
+    },
+    'Diano': {
+        km: 104.5,
+        type: 3
+    },
+    'Imperia': {
+        km:109.4,
+        type: 2
     }
+
 
 }

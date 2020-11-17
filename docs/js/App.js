@@ -46,9 +46,7 @@ class App {
         title.innerText = "Treni";
         header.append(title);
 
-        /*
-        const checkRow = document.createElement('div');
-        checkRow.className = 'table-row';*/
+
         const checkbox = document.createElement('input');
         checkbox.setAttribute('type','checkbox');
         checkbox.checked = !this.showOnlyActive;
@@ -58,7 +56,6 @@ class App {
         })
         header.append(checkbox, " Visualizzare i treni terminati");
 
-        //this.table.append(checkRow);
         
 
         for( const t of this.trains ) {
@@ -139,10 +136,38 @@ class App {
             row.append(stopName, times);
         }
 
+        if ( this.trainFocus.stops.length == 0) {
+            const row = document.createElement('div');
+            row.className = 'table-row';
+            row.innerText = 'No stations present';
+            this.table.append(row);
+        }
+
+        const row = document.createElement('div');
+        row.className = 'table-head table-row';
+        const hideButton = document.createElement('button');
+        hideButton.className = 'info';
+        if ( this.trainFocus.active ) {
+            hideButton.innerText = 'Termina';
+        } else {
+            hideButton.innerText = 'Riattiva';
+        }
+
+        hideButton.addEventListener('click', () => {
+            this.trainFocus.active = !this.trainFocus.active;
+            this.trainFocus = null;
+            this.buildUI();
+            this.graficoOrario.update();
+        })
+
+        row.append(hideButton);
+        this.table.append(row); 
+
         
     }
 
     buildHeader() {
+        this.header.replaceChildren();
         const time = document.createElement('h1');
         time.className = "clock"
 
@@ -180,6 +205,7 @@ class App {
 
     buildFooterNewTrain() {
         this.footer.replaceChildren();
+        this.footer.className = 'flex-column';
         const div = document.createElement('div');
 
         const inputField = document.createElement('input');
@@ -189,18 +215,31 @@ class App {
         const button = document.createElement('button');
         button.innerText = "Nuovo";
         button.className = 'success';
+        div.append(inputField, button);
+
+        this.footer.append(div);
 
         button.addEventListener('click', () => {
-            this.newTrain(inputField.value)
+            if( !this.newTrain(inputField.value) ) {
+                if ( this.footer.childNodes.length >= 2) {
+                    return;
+                }
+                const error = document.createElement('span');
+                error.className = 'error';
+                error.innerText = "A Train already exist with this name";
+                this.footer.append(error);
+            } else {
+                inputField.innerText = "";
+                this.buildFooterNewTrain();
+            }
         })
 
-        div.append(inputField, button);
-        this.footer.append(div);
+
     }
 
     buildFooterStop() {
         this.footer.replaceChildren();
-        const div = document.createElement('div');
+        this.footer.className = '';
 
         const inputStationName = document.createElement('select');
         for ( const s in this.stationNames){
@@ -209,19 +248,30 @@ class App {
             inputStationName.add(addOption);
         }
 
+        inputStationName.addEventListener('change', () => {
+            this.currentStop = null;
+            inputArrTime.value = '';
+            inputDepTime.value = '';
+        })
+
+        const div = document.createElement('div');
         const arrivalDiv = document.createElement('div');
         const inputArrDate = document.createElement('input');
         inputArrDate.setAttribute('type', 'date');
         const inputArrTime = document.createElement('input');
         inputArrTime.setAttribute('type','time');
-        arrivalDiv.append(inputArrDate, inputArrTime);
+        inputArrDate.value = this.getDateString(new Date());
+        arrivalDiv.append( inputArrDate, inputArrTime);
 
         const departureDiv = document.createElement('div');
         const inputDepDate = document.createElement('input');
         inputDepDate.setAttribute('type', 'date');
         const inputDepTime = document.createElement('input');
         inputDepTime.setAttribute('type','time');
-        departureDiv.append(inputDepDate, inputDepTime);
+        inputDepDate.value = this.getDateString(new Date());
+        departureDiv.append( inputDepDate, inputDepTime);
+        
+        div.append(arrivalDiv, departureDiv);
 
         if ( this.currentStop != null ) {
             inputStationName.value = this.currentStop.name;
@@ -254,8 +304,7 @@ class App {
             this.showTrainUI();
         })
 
-        div.append(inputStationName, arrivalDiv, departureDiv, saveBtn);
-        this.footer.append(div);
+        this.footer.append(inputStationName, div, saveBtn);
     }
 
     saveStop(station, arrDate, arrTime, depDate, depTime) {
@@ -337,20 +386,29 @@ class App {
         }
     }
 
-    newTrain(id) {;
-        const type = id.replace(/\d/g, '');
-        const number = parseInt(id.replace(/[^\d]/g,''));
+    newTrain(input) {
+        //FIXME better return values 
+        const id = input.toUpperCase();
+        const type = input.replace(/\d/g, '');
+        const number = parseInt(input.replace(/[^\d]/g,''));
+
+        if ( type == '' || isNaN(number)) {
+            return false;
+        }
         for ( const t of this.trains) {
             if ( t.name == id || t.number == number)
             {
                 console.log("This train already exist");
-                return;
+                return false;
             }
         }
+
+        const typeNumber = this.numberFromType(type);
+
         const train = {
             name: id,
             number: number,
-            type: 1,
+            type: typeNumber,
             active: true,
             selected: false,
             stops: []
@@ -358,6 +416,7 @@ class App {
 
         this.trains.push(train);
         this.buildTrainsTable();
+        return true;
     }
 
     getTrainLines() {
@@ -366,20 +425,7 @@ class App {
         for (const t of this.trains ) {
             const selected  = t.selected;
 
-            let color;
-            switch(t.type) {
-                case 1:
-                    color = 'black';
-                    break;
-                case 2: 
-                    color = 'red';
-                    break;
-                case 3:
-                    color = 'green';
-                    break;
-                default:
-                    color = 'black';
-            }
+            const color = this.colorFromType(t.type);
 
             let points = [];
             for ( const s of t.stops ) {
@@ -442,6 +488,46 @@ class App {
         value += day;
 
         return value;
+    }
+
+    colorFromType(type){
+        switch(type){
+        case 1:
+            return 'black';
+        case 2:
+            return 'green';
+        case 3:
+            return 'red';
+        case 4:
+            return 'violet';
+        case 5:
+            return 'blue';
+        default:
+            return 'black';
+        }
+    }
+
+    numberFromType(type) {
+        switch(type){
+        case "REG":
+            return 1;
+        case "R":
+            return 1;
+        case "RE":
+            return 2;
+        case "IC":
+            return 3;
+        case "AV":
+            return 4;
+        case "EC":
+            return 3;
+        case "EN":
+            return 3;
+        case "S":
+            return 5;
+        default:
+            return 1;
+        }
     }
 }
 
