@@ -139,6 +139,13 @@ class App {
             row.append(stopName, times);
         }
 
+        if ( this.trainFocus.stops.length == 0) {
+            const row = document.createElement('div');
+            row.className = 'table-row';
+            row.innerText = 'No stations present';
+            this.table.append(row);
+        }
+
         
     }
 
@@ -180,6 +187,7 @@ class App {
 
     buildFooterNewTrain() {
         this.footer.replaceChildren();
+        this.footer.className = 'flex-column';
         const div = document.createElement('div');
 
         const inputField = document.createElement('input');
@@ -189,18 +197,31 @@ class App {
         const button = document.createElement('button');
         button.innerText = "Nuovo";
         button.className = 'success';
+        div.append(inputField, button);
+
+        this.footer.append(div);
 
         button.addEventListener('click', () => {
-            this.newTrain(inputField.value)
+            if( !this.newTrain(inputField.value) ) {
+                if ( this.footer.childNodes.length >= 2) {
+                    return;
+                }
+                const error = document.createElement('span');
+                error.className = 'error';
+                error.innerText = "A Train already exist with this name";
+                this.footer.append(error);
+            } else {
+                inputField.innerText = "";
+                this.buildFooterNewTrain();
+            }
         })
 
-        div.append(inputField, button);
-        this.footer.append(div);
+
     }
 
     buildFooterStop() {
         this.footer.replaceChildren();
-        const div = document.createElement('div');
+        this.footer.className = '';
 
         const inputStationName = document.createElement('select');
         for ( const s in this.stationNames){
@@ -209,19 +230,30 @@ class App {
             inputStationName.add(addOption);
         }
 
+        inputStationName.addEventListener('change', () => {
+            this.currentStop = null;
+            inputArrTime.value = '';
+            inputDepTime.value = '';
+        })
+
+        const div = document.createElement('div');
         const arrivalDiv = document.createElement('div');
         const inputArrDate = document.createElement('input');
         inputArrDate.setAttribute('type', 'date');
         const inputArrTime = document.createElement('input');
         inputArrTime.setAttribute('type','time');
-        arrivalDiv.append(inputArrDate, inputArrTime);
+        inputArrDate.value = this.getDateString(new Date());
+        arrivalDiv.append( inputArrDate, inputArrTime);
 
         const departureDiv = document.createElement('div');
         const inputDepDate = document.createElement('input');
         inputDepDate.setAttribute('type', 'date');
         const inputDepTime = document.createElement('input');
         inputDepTime.setAttribute('type','time');
-        departureDiv.append(inputDepDate, inputDepTime);
+        inputDepDate.value = this.getDateString(new Date());
+        departureDiv.append( inputDepDate, inputDepTime);
+        
+        div.append(arrivalDiv, departureDiv);
 
         if ( this.currentStop != null ) {
             inputStationName.value = this.currentStop.name;
@@ -254,8 +286,7 @@ class App {
             this.showTrainUI();
         })
 
-        div.append(inputStationName, arrivalDiv, departureDiv, saveBtn);
-        this.footer.append(div);
+        this.footer.append(inputStationName, div, saveBtn);
     }
 
     saveStop(station, arrDate, arrTime, depDate, depTime) {
@@ -337,14 +368,20 @@ class App {
         }
     }
 
-    newTrain(id) {;
-        const type = id.replace(/\d/g, '');
-        const number = parseInt(id.replace(/[^\d]/g,''));
+    newTrain(input) {
+        //TODO Change type based on input
+        const id = input.toUpperCase();
+        const type = input.replace(/\d/g, '');
+        const number = parseInt(input.replace(/[^\d]/g,''));
+
+        if ( type == '' || isNaN(number)) {
+            return false;
+        }
         for ( const t of this.trains) {
             if ( t.name == id || t.number == number)
             {
                 console.log("This train already exist");
-                return;
+                return false;
             }
         }
         const train = {
@@ -358,6 +395,7 @@ class App {
 
         this.trains.push(train);
         this.buildTrainsTable();
+        return true;
     }
 
     getTrainLines() {
